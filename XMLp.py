@@ -17,7 +17,7 @@ for f in args.file:
     tree = ET.parse(f) #(file_in)
     root = tree.getroot()
     
-    w = open(f[:len(f)-3] + '.csv', 'w')
+    w = open(f[:len(f)-4] + '.csv', 'w')
     for hit in root.iter('hit'):
         #print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))
         w.write( "%s; %s; %s; %s \n"  % (hit.get('text'), hit.text, hit.find('kw').text, hit.find('kw').tail))
