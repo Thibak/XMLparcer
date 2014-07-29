@@ -39,12 +39,12 @@ if a == 1:
         
         w = open(f[:len(f)-4] + '.csv', 'w')
         for hit in root.iter('hit'):
-            print BNCpath + index[hit.get('text')]
+            #print BNCpath + index[hit.get('text')]
             #импортируем файл исходник, для получения метаинформации
-            #cource = ET.parse(BNCpath + index[hit.get('text')]) #(file_in)
-            #crc_r = tree.getroot()
-            ##print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))
-            #w.write( "%s; %s; %s; %s \n"  % (hit.get('text'), hit.text, hit.find('kw').text, hit.find('kw').tail))
+            cource = ET.parse(BNCpath + 'Texts/' + index[hit.get('text')]) #(file_in)
+            crc_r = cource.getroot()
+            #print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))
+            w.write( "%s; %s; %s; %s \n"  % (hit.get('text'), hit.text, hit.find('kw').text, hit.find('kw').tail))
 
 
     #def ff(file_in):  C:/Users/russinow/Desktop/Query1.xml
