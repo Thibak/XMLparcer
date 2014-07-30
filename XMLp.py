@@ -7,8 +7,12 @@ Created on Mon Jul 28 14:45:58 2014
 
 import xml.etree.ElementTree as ET
 import argparse
+import sys
 
+if sys.argv == [sys.argv[0]]:
+	sys.exit()
 
+print('point\n')
 
 parser = argparse.ArgumentParser(description='convert .xml to .csv')
 parser.add_argument('file', metavar='FILE', type=str, nargs='+',
@@ -17,11 +21,6 @@ parser.add_argument('file', metavar='FILE', type=str, nargs='+',
 BNCpath = 'D:/BNCcorp/'
 
 args = parser.parse_args()
-a = 1                 
-
-#if args.file == ['None']:
-#    print('Set file to convert')
-#    a = 0
 
 
 
@@ -31,8 +30,8 @@ index_root = indexXML.getroot()
 
 index = {ir.text[5:8]:ir.text  for ir in index_root.iter('file')}
 
-if a == 1: 
-    for f in args.file:
+ 
+for f in args.file:
         #импортируем файл для конвертации
         tree = ET.parse(f) #(file_in)
         root = tree.getroot()
@@ -43,6 +42,7 @@ if a == 1:
             #импортируем файл исходник, для получения метаинформации
             cource = ET.parse(BNCpath + 'Texts/' + index[hit.get('text')]) #(file_in)
             crc_r = cource.getroot()
+#			for n in crc_r.findall(\\)
             #print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))
             w.write( "%s; %s; %s; %s \n"  % (hit.get('text'), hit.text, hit.find('kw').text, hit.find('kw').tail))
 
