@@ -48,4 +48,5 @@ BNC_WORLD_INDEX.XLS
 + роль, адресат
 
 
-
+===
+часть речи: NN0, NN1, NN1-AJ0, NN1-NP0, NN1-WB, NN1-WG, NN2, NN2-WZ, NP0-NN1, UNC, WB-NN1, WG-NN1, WZ-NN2
