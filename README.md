@@ -13,22 +13,34 @@ BNC_WORLD_INDEX.XLS
 
 Который мы туда помещаем. О применении и синтаксисе ниже.
 
-| -- BNCpath
-  | -- Doc
+ - BNCpath
+   - Doc
       - HTML (user guide)
       -Src (user guide)
-  | -- Etc
+   - Etc
       -file_index
-  | -- Index
+ - Index
       - xid
       -xgrammar
-  | -- install
-  | -- Texts (A-K)
-  | -- Usr
-  | --XML
+ - install
+ - Texts (A-K)
+ - Usr
+ - XML
       - scrips
-  -- BNC_WORLD_INDEX
-  -- bncHdr
-  -- bncBib
-  -- corpus_parameters
+  - BNC_WORLD_INDEX
+  - bncHdr
+  - bncBib
+  - corpus_parameters
          
+=======
+
+нужные в таблице данные: слово, левое и правое окружение, класс, возраст, пол, роль, тип взаимодействия, источник (?)
+отбор данных: только устный, исключая передачи
+можно задавать в параметрах - устный, класс и существ. переменная - класс (AB, C1, C2, DE, uncl)
+
+
+
+
+
+
+
