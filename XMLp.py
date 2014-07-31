@@ -8,6 +8,7 @@ Created on Mon Jul 28 14:45:58 2014
 import xml.etree.ElementTree as ET
 import argparse
 import sys
+import paths
 
 if sys.argv == [sys.argv[0]]:
 	sys.exit()
@@ -18,14 +19,12 @@ parser = argparse.ArgumentParser(description='convert .xml to .csv')
 parser.add_argument('file', metavar='FILE', type=str, nargs='+',
                   help='file to convert')
 
-BNCpath = 'D:/BNCcorp/'
-
 args = parser.parse_args()
 
 
 
 #получаем индекс файлов
-indexXML = ET.parse(BNCpath + 'Etc/file_index.xml') #(file_in)
+indexXML = ET.parse(paths.BNCpath + 'Etc/file_index.xml') #(file_in)
 index_root = indexXML.getroot()
 
 index = {ir.text[5:8]:ir.text  for ir in index_root.iter('file')}
@@ -40,7 +39,7 @@ for f in args.file:
         for hit in root.iter('hit'):
             #print BNCpath + index[hit.get('text')]
             #импортируем файл исходник, для получения метаинформации
-            cource = ET.parse(BNCpath + 'Texts/' + index[hit.get('text')]) #(file_in)
+            cource = ET.parse(paths.BNCpath + 'Texts/' + index[hit.get('text')]) #(file_in)
             crc_r = cource.getroot()
 #			for n in crc_r.findall(\\)
             #print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))

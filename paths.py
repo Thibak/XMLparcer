@@ -1,0 +1,3 @@
+
+
+BNCpath = 'D:/BNCcorp/'
