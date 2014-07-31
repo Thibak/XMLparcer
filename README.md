@@ -15,9 +15,20 @@ BNC_WORLD_INDEX.XLS
 
 | -- BNCpath
   | -- Doc
+      - HTML (user guide)
+      -Src (user guide)
   | -- Etc
+      -file_index
   | -- Index
+      - xid
+      -xgrammar
   | -- install
-  | -- Texts
+  | -- Texts (A-K)
   | -- Usr
-  | -- 
+  | --XML
+      - scrips
+  -- BNC_WORLD_INDEX
+  -- bncHdr
+  -- bncBib
+  -- corpus_parameters
+         
