@@ -39,8 +39,13 @@ BNC_WORLD_INDEX.XLS
 можно задавать в параметрах - устный, класс и существ. переменная - класс (AB, C1, C2, DE, uncl)
 
 
+===
 
+запрос: if Q="S" and C="S_Demog_AB" or "S_Demog_C1" or "S_Demog_C2" or "S_Demog_DE" or "S_Demog_Unclassified"
 
+нужные столбцы: A, C, M, R, S, T
+
++ роль, адресат
 
 
 
