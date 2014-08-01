@@ -9,6 +9,11 @@ import xml.etree.ElementTree as ET
 import xlrd # чтение файлов Excel
 # файл с настройками
 import paths
+import xlwt
+wb = xlwt.Workbook()
+ws = wb.add_sheet('data')
+
+ 
 
 # функция обратная к colname
 def colindex(colname):
@@ -37,33 +42,42 @@ def GetItem(stri,intg):
     return sheet.cell(intg-1,colindex(stri)).value.encode('ascii','ignore')
 
 #инкапсуляция проверки получения ноды
-def GetText(host_el):
-    if host_el is not None:
-        return host_el.text
-    else:
+def GetTextFind(host_el, key, akey):
+    try:
+        return host_el[key].find(akey).text
+    except KeyError:
+        return ''
+    except AttributeError:
         return ''
 
+def GetAttr(host_el, key, akey):
+    try:
+        return host_el[key].attrib[akey]
+    except KeyError:
+        return ''
+        
 #открываем файл аутпута
-output = open(paths.BNCpath + 'output.csv', 'w')
+#output = open(paths.BNCpath + 'output.csv', 'w')
 #пишем в него хедеры столбцов
-output.write("leftContext[] ; AN[]       ; ; rightContext[] ; c5 ; pos ; n ; PersonDict[who].attrib['sex'] ;  PersonDict[who].find('age').text ; PersonDict[who].find('persName').text ; PersonDict[who].find('occupation').text ; PersonDict[who].find('dialect').text ; f ; title")
-output.write("left Context  ; Abstr Noun ; ; right Context  ; c5 ; pos ; n ; sex                           ;                        age        ;                       persName        ;                       occupation        ;                       dialect        ; f ; title")
+#output.write("leftContext[] ; AN[]       ; ; rightContext[] ; c5 ; pos ; n ; PersonDict[who].attrib['sex'] ;  PersonDict[who].find('age').text ; PersonDict[who].find('persName').text ; PersonDict[who].find('occupation').text ; PersonDict[who].find('dialect').text ; f ; title")
+#output.write("left Context  ; Abstr Noun ; ; right Context  ; c5 ; pos ; n ; sex                           ;                        age        ;                       persName        ;                       occupation        ;                       dialect        ; f ; title")
 
 #переменные хода прогресса
 progress = 0
 sp = ' ; '
+num = 0
 
 # прочесываем все файлы на предмет соответствия заданным характеристикам
 for f in index:
     progress = progress + 1
     RowNum = SourceRowIndex[f]
-    print (str ((len(index) - progress))+'-->'+str(RowNum)+' |=| '+str(f))
+    print (str ((len(index) - progress))+'-->'+str(RowNum)+' |=| '+str(f) + ' ЗАПИСЕЙ: '+ str(num))
     # Условия отбора
     if (GetItem('Q',RowNum) == "S") and GetItem('C',RowNum) in ("S_Demog_AB", "S_Demog_C1", "S_Demog_C2", "S_Demog_DE", "S_Demog_Unclassified"):
         tree = ET.parse(paths.BNCpath + 'Texts/' + index[f]) # нужный файл найден, начинаем его анализировать, и расчленять
         root = tree.getroot()       
         #вычленяем хедер и данные из него
-        title = tree.find('.//title').text
+        #title = tree.find('.//title').text
         #анализатор персон
         PersonDict = {}
         for pers in tree.findall('.//person'):
@@ -71,58 +85,83 @@ for f in index:
         # основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книгиб
         for u in root.findall('.//u'):
             who = u.attrib['who']    
-            for s in u.findall('s'): #s = root.find('.//s')
-                n = s.attrib['n']
-                leftContext = ['']
-                rightContext = ['']
-                b = [True]# идентификатор до или после. После того, как находим пишем и до и после.
-                flag = [1]                
-                AN = []
-                c5 = []
-                hw = []
-                pos = []
-                i = 0 # идентификатор количества найденых существительных
-                for w in s.findall('.//'): # все содержимое блока.
-                    flag[i-1] = 1  
-                    word = ''                        
-                    if w.tag == 'c':
-                        word = w.text               
-                    if w.tag == 'w':
-                        word = w.text                         
-                        if w.attrib['c5'] in ('NN0', 'NN1', 'NN1-AJ0', 'NN1-NP0', 'NN1-WB', 'NN1-WG', 'NN2', 'NN2-WZ', 'NP0-NN1', 'UNC', 'WB-NN1', 'WG-NN1', 'WZ-NN2'): 
-                            AN.append(w.text)
-                            c5.append(w.attrib['c5'])
-                            hw.append(w.attrib['hw'])
-                            pos.append(w.attrib['pos'])
-                            leftContext.append(str(leftContext[i]))
-                            rightContext.append('')
-                            b[i] = False
-                            flag[i] = 0
-                            b.append(True)
-                            flag.append(1)
-                            i = i + 1                            
-                    for ik in range(i+1):
-                        if b[ik]: 
-                            leftContext[ik] = leftContext[ik] + word
-                        else:                            
-                            rightContext[ik] = rightContext[ik] + word*flag[ik]
-                    #Аутпутим в цикле по range(i)
-                for k in range(i):
-                    output.write(leftContext[k]+sp+ \
-                            AN[k]+sp+ \
-                            rightContext[k]+sp+sp+ \
-                            c5[k] +sp+ \
-                            pos[k] +sp+ \
-                            n +sp+ \
-                            PersonDict[who].attrib['sex'] +sp+ \
-                            PersonDict[who].attrib['role'] +sp+ \
-                            PersonDict[who].attrib['sex'] +sp+ \
-                            PersonDict[who].attrib['soc'] +sp+ \
-                            PersonDict[who].attrib['dialect'] +sp+ \
-                            GetText(PersonDict[who].find('age')) +sp+ \
-                            GetText(PersonDict[who].find('persName')) +sp+ \
-                            GetText(PersonDict[who].find('occupation')) +sp+ \
-                            GetText(PersonDict[who].find('dialect')) +sp+ \
-                            f +sp+ \
-                            title)
-output.close()
+            if GetAttr(PersonDict,who,'dialect') in ('XNC','XNO','XSL','XLO','XMW','XME','XMC','XNE','XLC','XSS'):
+                for s in u.findall('s'): #s = root.find('.//s')
+                    n = s.attrib['n']
+                    leftContext = ['']
+                    rightContext = ['']
+                    b = [True]# идентификатор до или после. После того, как находим пишем и до и после.
+                    flag = [1]                
+                    AN = []
+                    c5 = []
+                    hw = []
+                    pos = []
+                    i = 0 # идентификатор количества найденых существительных
+                    for w in s.findall('.//'): # все содержимое блока.
+                        flag[i-1] = 1  
+                        word = ''                        
+                        if w.tag == 'c':
+                            word = w.text               
+                        if w.tag == 'w':
+                            word = w.text                         
+                            if w.attrib['c5'] in ('NN0', 'NN1', 'NN1-AJ0', 'NN1-NP0', 'NN1-WB', 'NN1-WG', 'NN2', 'NN2-WZ', 'NP0-NN1', 'UNC', 'WB-NN1', 'WG-NN1', 'WZ-NN2'): 
+                                AN.append(w.text)
+                                c5.append(w.attrib['c5'])
+                                hw.append(w.attrib['hw'])
+                                pos.append(w.attrib['pos'])
+                                leftContext.append(leftContext[i])
+                                rightContext.append('')
+                                b[i] = False
+                                flag[i] = 0
+                                b.append(True)
+                                flag.append(1)
+                                i = i + 1                            
+                        for ik in range(i+1):
+                            if b[ik]: 
+                                leftContext[ik] = leftContext[ik] + word
+                            else:                            
+                                rightContext[ik] = rightContext[ik] + word*flag[ik]
+                        #Аутпутим в цикле по range(i)
+                    for k in range(i):
+                        num = num + 1
+                        ('UU','DE','C1','AB','C2')
+
+                   #     ws.write(num, 0, leftContext[k])
+                   #     ws.write(num, 1, AN[k])
+                   #     ws.write(num, 2, rightContext[k])
+                   #     ws.write(num, 3, c5[k])
+                   #     ws.write(num, 4, pos[k])
+                   #     ws.write(num, 5, n)
+                   #     ws.write(num, 6, GetAttr(PersonDict,who,'sex'))
+                   #     ws.write(num, 7, GetAttr(PersonDict,who,'role'))
+                   #     ws.write(num, 8, GetAttr(PersonDict,who,'soc'))
+                   #     ws.write(num, 9, GetAttr(PersonDict,who,'dialect'))
+                   #     ws.write(num, 10, GetTextFind(PersonDict,who,'age'))
+                   #     ws.write(num, 11, GetTextFind(PersonDict,who,'persName'))
+                   #     ws.write(num, 12, GetTextFind(PersonDict,who,'occupation'))
+                   #     ws.write(num, 13, GetTextFind(PersonDict,who,'dialect'))
+                   #     ws.write(num, 14, f)
+                        #ws.write(num, 15, )
+                        #ws.write(num, 1, )
+                        
+                        
+                        
+                        #a = str(num) + leftContext[k]+sp+ \
+                        #        AN[k]+sp+ \
+                        #        rightContext[k]+sp+sp+ \
+                        #        c5[k] +sp+ \
+                        #        pos[k] +sp+ \
+                        #        n +sp+ \
+                        #        GetAttr(PersonDict,who,'sex') +sp+ \
+                        #        GetAttr(PersonDict,who,'role') +sp+ \
+                        #        GetAttr(PersonDict,who,'soc') +sp+ \
+                        #        GetAttr(PersonDict,who,'dialect') +sp+ \
+                        #        GetTextFind(PersonDict,who,'age') +sp+ \
+                        #        GetTextFind(PersonDict,who,'persName') +sp+ \
+                        #        GetTextFind(PersonDict,who,'occupation') +sp+ \
+                        #        GetTextFind(PersonDict,who,'dialect') +sp+ \
+                        #        f
+                       # output.write(a.encode('utf-8'))
+#output.close()
+wb.save('example.xls')
+print(num)
