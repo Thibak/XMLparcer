@@ -6,21 +6,9 @@ Created on Mon Jul 28 14:45:58 2014
 """
 
 import xml.etree.ElementTree as ET
-#import argparse
-#import sys
 import xlrd # чтение файлов Excel
 # файл с настройками
 import paths
-
-#if sys.argv == [sys.argv[0]]:
-#	sys.exit()
-
-#формируем парсер аргументов командной строки
-#parser = argparse.ArgumentParser(description='convert .xml to .csv')
-#parser.add_argument('file', metavar='FILE', type=str, nargs='+',
-#                  help='file to convert')
-#args = parser.parse_args()
-
 
 # функция обратная к colname
 def colindex(colname):
@@ -29,7 +17,6 @@ def colindex(colname):
     for i in range(len(colname)):
             k = k + (alphabet.find(colname[i].upper())+1)*(26*(len(colname)-i-1))
     return k
-
 
 #получаем индекс файлов
 indexXML = ET.parse(paths.BNCpath + 'Etc/file_index.xml') #(file_in)
@@ -49,6 +36,7 @@ for rownum in range(sheet.nrows):
 def GetItem(stri,intg):
     return sheet.cell(intg-1,colindex(stri)).value.encode('ascii','ignore')
 
+#инкапсуляция проверки получения ноды
 def GetText(host_el):
     if host_el is not None:
         return host_el.text
@@ -57,60 +45,31 @@ def GetText(host_el):
 
 #открываем файл аутпута
 output = open(paths.BNCpath + 'output.csv', 'w')
+#пишем в него хедеры столбцов
 output.write("leftContext[] ; AN[]       ; ; rightContext[] ; c5 ; pos ; n ; PersonDict[who].attrib['sex'] ;  PersonDict[who].find('age').text ; PersonDict[who].find('persName').text ; PersonDict[who].find('occupation').text ; PersonDict[who].find('dialect').text ; f ; title")
 output.write("left Context  ; Abstr Noun ; ; right Context  ; c5 ; pos ; n ; sex                           ;                        age        ;                       persName        ;                       occupation        ;                       dialect        ; f ; title")
 
-
 #переменные хода прогресса
 progress = 0
-gut = 0
+sp = ' ; '
 
-#for f in args.file:#импортируем файл для конвертации
-
+# прочесываем все файлы на предмет соответствия заданным характеристикам
 for f in index:
     progress = progress + 1
     RowNum = SourceRowIndex[f]
     print (str ((len(index) - progress))+'-->'+str(RowNum)+' |=| '+str(f))
     # Условия отбора
     if (GetItem('Q',RowNum) == "S") and GetItem('C',RowNum) in ("S_Demog_AB", "S_Demog_C1", "S_Demog_C2", "S_Demog_DE", "S_Demog_Unclassified"):
-        print("CATCH IT: "+str(RowNum)+' |=| '+str(f))  
-        gut = gut+1
-        # нужный файл найден, начинаем его анализировать, и расчленять
-#        tree = ET.parse(paths.BNCpath + 'Texts/' + index[f]) #(file_in)
-#        root = tree.getroot()       
-        
-print('catched: '+ str(gut))
-#        
-        #for hit in root.iter('hit'):#w = open(f[:len(f)-4] + '.csv', 'w')
-            #print BNCpath + index[hit.get('text')]
-            #импортируем файл исходник, для получения метаинформации
-         #   cource = ET.parse(paths.BNCpath + 'Texts/' + index[hit.get('text')]) #(file_in)
-         #   crc_r = cource.getroot()
-#			for n in crc_r.findall(\\)
-            #print(str(hit.get('text')) + ';' + str(hit.text) + ';' + str(hit.find('kw').text) + ';' + str(hit.find('kw').tail))
-            #w.write( "%s; %s; %s; %s \n"  % (hit.get('text'), hit.text, hit.find('kw').text, hit.find('kw').tail))
-
-
-    #def ff(file_in):  C:/Users/russinow/Desktop/Query1.xml
-#tree = ET.parse(args.file) #(file_in)
-#root = tree.getroot()
-#for hit in root.iter('hit'):
-#        print(hit.get('text')+'; ' + hit.text + '; ' + hit.find('kw').text+ '; ' + hit.find('kw').tail)
-
-tree = ET.parse(paths.BNCpath + 'Texts/' + index['KD9']) #(file_in)
-root = tree.getroot() 
-
-#вычленяем хедер и данные из него
-title = tree.find('.//title').text
-#анализатор персон
-PersonDict = {}
-for pers in tree.findall('.//person'):
-    PersonDict[pers.attrib['{http://www.w3.org/XML/1998/namespace}id']] = pers 
-
-sp = ' ; '
-# основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книгиб
-
-for u in root.findall('.//u'):
+        tree = ET.parse(paths.BNCpath + 'Texts/' + index[f]) # нужный файл найден, начинаем его анализировать, и расчленять
+        root = tree.getroot()       
+        #вычленяем хедер и данные из него
+        title = tree.find('.//title').text
+        #анализатор персон
+        PersonDict = {}
+        for pers in tree.findall('.//person'):
+            PersonDict[pers.attrib['{http://www.w3.org/XML/1998/namespace}id']] = pers 
+        # основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книгиб
+        for u in root.findall('.//u'):
             who = u.attrib['who']    
             for s in u.findall('s'): #s = root.find('.//s')
                 n = s.attrib['n']
@@ -149,7 +108,7 @@ for u in root.findall('.//u'):
                             rightContext[ik] = rightContext[ik] + word*flag[ik]
                     #Аутпутим в цикле по range(i)
                 for k in range(i):
-                    print (leftContext[k]+sp+ \
+                    output.write(leftContext[k]+sp+ \
                             AN[k]+sp+ \
                             rightContext[k]+sp+sp+ \
                             c5[k] +sp+ \
@@ -166,9 +125,4 @@ for u in root.findall('.//u'):
                             GetText(PersonDict[who].find('dialect')) +sp+ \
                             f +sp+ \
                             title)
-
-
-
-
-
 output.close()
