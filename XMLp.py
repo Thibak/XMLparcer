@@ -49,8 +49,17 @@ for rownum in range(sheet.nrows):
 def GetItem(stri,intg):
     return sheet.cell(intg-1,colindex(stri)).value.encode('ascii','ignore')
 
+def GetText(host_el):
+    if host_el is not None:
+        return host_el.text
+    else:
+        return ''
+
 #открываем файл аутпута
 output = open(paths.BNCpath + 'output.csv', 'w')
+output.write("leftContext[] ; AN[]       ; ; rightContext[] ; c5 ; pos ; n ; PersonDict[who].attrib['sex'] ;  PersonDict[who].find('age').text ; PersonDict[who].find('persName').text ; PersonDict[who].find('occupation').text ; PersonDict[who].find('dialect').text ; f ; title")
+output.write("left Context  ; Abstr Noun ; ; right Context  ; c5 ; pos ; n ; sex                           ;                        age        ;                       persName        ;                       occupation        ;                       dialect        ; f ; title")
+
 
 #переменные хода прогресса
 progress = 0
@@ -87,9 +96,19 @@ print('catched: '+ str(gut))
 #root = tree.getroot()
 #for hit in root.iter('hit'):
 #        print(hit.get('text')+'; ' + hit.text + '; ' + hit.find('kw').text+ '; ' + hit.find('kw').tail)
+
+tree = ET.parse(paths.BNCpath + 'Texts/' + index['KD9']) #(file_in)
+root = tree.getroot() 
+
+#вычленяем хедер и данные из него
+title = tree.find('.//title').text
+#анализатор персон
+PersonDict = {}
+for pers in tree.findall('.//person'):
+    PersonDict[pers.attrib['{http://www.w3.org/XML/1998/namespace}id']] = pers 
+
 sp = ' ; '
-print ("leftContext[] ; AN[]       ; ; rightContext[] ; PersonDict[who].attrib['sex'] ;  who.find()")
-print ("left Context  ; Abstr Noun ; ; right Context  ; sex                           ;  who.find()")
+# основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книгиб
 
 for u in root.findall('.//u'):
             who = u.attrib['who']    
@@ -130,9 +149,23 @@ for u in root.findall('.//u'):
                             rightContext[ik] = rightContext[ik] + word*flag[ik]
                     #Аутпутим в цикле по range(i)
                 for k in range(i):
-                        print(leftContext[k]+sp+ \
+                    print (leftContext[k]+sp+ \
                             AN[k]+sp+ \
-                            rightContext[k] + sp + PersonDict[who].attrib['sex'] + sp+ str(n))
+                            rightContext[k]+sp+sp+ \
+                            c5[k] +sp+ \
+                            pos[k] +sp+ \
+                            n +sp+ \
+                            PersonDict[who].attrib['sex'] +sp+ \
+                            PersonDict[who].attrib['role'] +sp+ \
+                            PersonDict[who].attrib['sex'] +sp+ \
+                            PersonDict[who].attrib['soc'] +sp+ \
+                            PersonDict[who].attrib['dialect'] +sp+ \
+                            GetText(PersonDict[who].find('age')) +sp+ \
+                            GetText(PersonDict[who].find('persName')) +sp+ \
+                            GetText(PersonDict[who].find('occupation')) +sp+ \
+                            GetText(PersonDict[who].find('dialect')) +sp+ \
+                            f +sp+ \
+                            title)
 
 
 
