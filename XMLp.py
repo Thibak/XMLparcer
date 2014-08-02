@@ -41,7 +41,7 @@ DE = wb.add_sheet('DE')
 C1 = wb.add_sheet('C1')
 AB = wb.add_sheet('AB')
 C2 = wb.add_sheet('C2')
-ND = wb.add_sheet('ND')
+meta = wb.add_sheet('meta')
 
     
 # функция возвращающая значение по паре в нотации самого Excel (заодно сразу перевожу в str)
@@ -78,26 +78,48 @@ progress = 0
 sp = ' ; '
 num = 0
 # счетчик строк
-RowNum = {'UU':1,'DE':1,'C1':1,'AB':1,'C2':1,'ND':1}
+RowNumIndex = {'UU':1,'DE':1,'C1':1,'AB':1,'C2':1}
 vec = ['left Context',\
         'Abstr Noun',\
         'right Context',\
         'c5', \
         'pos',\
-        'n',\
         'sex',\
-        'age',\
-        'persName',\
+        'role',\
+        'social class',\
         'dialect',\
-        'f',\
-        'title'\
+        'occupation',\
+        'age',\
+        'name',\
+        'dialect (code)',\
+        'file name',\
+        'sentence num',\
+        'cource title'\
         ]
+#vec = ['left Context',\#vec = [leftContext[k],\
+#        'Abstr Noun',\# AN[k],\
+#        'right Context',\# rightContext[k], \
+#        'c5', \# c5[k], \
+#        'pos',\# pos[k], \
+#        'sex',\# GetAttr(PersonDict,who,'sex'), \
+#        'role',\# GetAttr(PersonDict,who,'role'), \
+#        'social class',\# GetAttr(PersonDict,who,'soc'), \
+#        'dialect',\# GetTextFind(PersonDict,who,'dialect'), \
+#        'occupation'# GetTextFind(PersonDict,who,'occupation'), \
+#        'age',\# GetTextFind(PersonDict,who,'age'), \
+#        'name',\# GetTextFind(PersonDict,who,'persName'),\
+#        'dialect (code)',\# GetAttr(PersonDict,who,'dialect'), \
+#        'file name',\# f, \
+#        'sentence num',\# n, \
+#        'cource title'\# title ]
+        
+
+
 writeRow(UU, 0, vec)
 writeRow(DE, 0, vec)
 writeRow(C1, 0, vec)
 writeRow(AB, 0, vec)
 writeRow(C2, 0, vec)
-writeRow(ND, 0, vec)
 
 # прочесываем все файлы на предмет соответствия заданным характеристикам
 for f in index:
@@ -158,40 +180,40 @@ for f in index:
                         num = num + 1
                         soc = GetAttr(PersonDict,who,'soc')
                         vec = [leftContext[k],\
-                                AN[k],\
-                                rightContext[k], \
-                                c5[k], \
-                                pos[k], \
-                                f, \
-                                n, \
-                                GetAttr(PersonDict,who,'sex'), \
-                                GetAttr(PersonDict,who,'role'), \
-                                GetAttr(PersonDict,who,'soc'), \
-                                GetAttr(PersonDict,who,'dialect'), \
-                                GetTextFind(PersonDict,who,'age'), \
-                                GetTextFind(PersonDict,who,'persName'), \
-                                GetTextFind(PersonDict,who,'occupation'), \
-                                GetTextFind(PersonDict,who,'dialect'), \
-                                title ]
+                            AN[k],\
+                            rightContext[k], \
+                            c5[k], \
+                            pos[k], \
+                            GetAttr(PersonDict,who,'sex'), \
+                            GetAttr(PersonDict,who,'role'), \
+                            GetAttr(PersonDict,who,'soc'), \
+                            GetTextFind(PersonDict,who,'dialect'), \
+                            GetTextFind(PersonDict,who,'occupation'), \
+тут                            GetTextFind(PersonDict,who,'age'), \ 
+                            GetTextFind(PersonDict,who,'persName'),\
+                            GetAttr(PersonDict,who,'dialect'), \
+                            f, \
+тут                            n, \
+                            title ]
+                            
                         #('UU','DE','C1','AB','C2')
                         if   soc == 'UU':
-                            writeRow(UU, RowNum['UU'], vec)
-                            RowNum['UU'] = RowNum['UU'] + 1
+                            writeRow(UU, RowNumIndex['UU'], vec)
+                            RowNumIndex['UU'] = RowNumIndex['UU'] + 1
                         elif soc == 'DE':
-                            writeRow(DE, RowNum['DE'], vec)
-                            RowNum['DE'] = RowNum['DE'] + 1
+                            writeRow(DE, RowNumIndex['DE'], vec)
+                            RowNumIndex['DE'] = RowNumIndex['DE'] + 1
                         elif soc == 'C1':
-                            writeRow(C1, RowNum['C1'], vec)
-                            RowNum['C1'] = RowNum['C1'] + 1
+                            writeRow(C1, RowNumIndex['C1'], vec)
+                            RowNumIndex['C1'] = RowNumIndex['C1'] + 1
                         elif soc == 'AB':
-                            writeRow(AB, RowNum['AB'], vec)
-                            RowNum['AB'] = RowNum['AB'] + 1
+                            writeRow(AB, RowNumIndex['AB'], vec)
+                            RowNumIndex['AB'] = RowNumIndex['AB'] + 1
                         elif soc == 'C2':
-                            writeRow(C2, RowNum['C2'], vec)
-                            RowNum['C2'] = RowNum['C2'] + 1
+                            writeRow(C2, RowNumIndex['C2'], vec)
+                            RowNumIndex['C2'] = RowNumIndex['C2'] + 1
                         else:
-                            writeRow(ND, RowNum['ND'], vec)
-                            RowNum['ND'] = RowNum['ND'] + 1
+                            pass
                       
                         
                        # ('UU','DE','C1','AB','C2')
@@ -233,5 +255,16 @@ for f in index:
                         #        f
                        # output.write(a.encode('utf-8'))
 #output.close()
+meta.write(0, 0, 'records')
+meta.write(0, 1, num)
+
+i = 1
+for key in RowNumIndex:
+    meta.write(i, 0, key)
+    #print (str(i)+','+key)
+    meta.write(i, 1, RowNumIndex[key])    
+    #print (str(i)+','+str(RowNumIndex[key]))
+    i = i+1
+
 wb.save(paths.BNCpath + 'base.xls')
 print(num)
