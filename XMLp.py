@@ -5,15 +5,11 @@ Created on Mon Jul 28 14:45:58 2014
 @author: russinow
 """
 
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET # читаем XML
 import xlrd # чтение файлов Excel
+import xlwt # пишем в Excel
 # файл с настройками
-import paths
-import xlwt
-wb = xlwt.Workbook()
-ws = wb.add_sheet('data')
-
- 
+import paths 
 
 # функция обратная к colname
 def colindex(colname):
@@ -36,6 +32,17 @@ sheet = rb.sheet_by_index(0)
 SourceRowIndex = {}
 for rownum in range(sheet.nrows):
     SourceRowIndex[sheet.cell(rownum,0).value.encode('ascii','ignore')] =  rownum+1
+
+# создаем выходной файл и листы в нем
+#('UU','DE','C1','AB','C2')
+wb = xlwt.Workbook()
+UU = wb.add_sheet('UU')
+DE = wb.add_sheet('DE')
+C1 = wb.add_sheet('C1')
+AB = wb.add_sheet('AB')
+C2 = wb.add_sheet('C2')
+ND = wb.add_sheet('ND')
+
     
 # функция возвращающая значение по паре в нотации самого Excel (заодно сразу перевожу в str)
 def GetItem(stri,intg):
@@ -56,6 +63,10 @@ def GetAttr(host_el, key, akey):
     except KeyError:
         return ''
         
+def writeRow(sheet, row, vec):
+    for i in range(len(vec)):
+        sheet.write(row, i, vec[i])
+        
 #открываем файл аутпута
 #output = open(paths.BNCpath + 'output.csv', 'w')
 #пишем в него хедеры столбцов
@@ -66,6 +77,27 @@ def GetAttr(host_el, key, akey):
 progress = 0
 sp = ' ; '
 num = 0
+# счетчик строк
+RowNum = {'UU':1,'DE':1,'C1':1,'AB':1,'C2':1,'ND':1}
+vec = ['left Context',\
+        'Abstr Noun',\
+        'right Context',\
+        'c5', \
+        'pos',\
+        'n',\
+        'sex',\
+        'age',\
+        'persName',\
+        'dialect',\
+        'f',\
+        'title'\
+        ]
+writeRow(UU, 0, vec)
+writeRow(DE, 0, vec)
+writeRow(C1, 0, vec)
+writeRow(AB, 0, vec)
+writeRow(C2, 0, vec)
+writeRow(ND, 0, vec)
 
 # прочесываем все файлы на предмет соответствия заданным характеристикам
 for f in index:
@@ -77,7 +109,7 @@ for f in index:
         tree = ET.parse(paths.BNCpath + 'Texts/' + index[f]) # нужный файл найден, начинаем его анализировать, и расчленять
         root = tree.getroot()       
         #вычленяем хедер и данные из него
-        #title = tree.find('.//title').text
+        title = tree.find('.//title').text
         #анализатор персон
         PersonDict = {}
         for pers in tree.findall('.//person'):
@@ -124,7 +156,45 @@ for f in index:
                         #Аутпутим в цикле по range(i)
                     for k in range(i):
                         num = num + 1
-                        ('UU','DE','C1','AB','C2')
+                        soc = GetAttr(PersonDict,who,'soc')
+                        vec = [leftContext[k],\
+                                AN[k],\
+                                rightContext[k], \
+                                c5[k], \
+                                pos[k], \
+                                f, \
+                                n, \
+                                GetAttr(PersonDict,who,'sex'), \
+                                GetAttr(PersonDict,who,'role'), \
+                                GetAttr(PersonDict,who,'soc'), \
+                                GetAttr(PersonDict,who,'dialect'), \
+                                GetTextFind(PersonDict,who,'age'), \
+                                GetTextFind(PersonDict,who,'persName'), \
+                                GetTextFind(PersonDict,who,'occupation'), \
+                                GetTextFind(PersonDict,who,'dialect'), \
+                                title ]
+                        #('UU','DE','C1','AB','C2')
+                        if   soc == 'UU':
+                            writeRow(UU, RowNum['UU'], vec)
+                            RowNum['UU'] = RowNum['UU'] + 1
+                        elif soc == 'DE':
+                            writeRow(DE, RowNum['DE'], vec)
+                            RowNum['DE'] = RowNum['DE'] + 1
+                        elif soc == 'C1':
+                            writeRow(C1, RowNum['C1'], vec)
+                            RowNum['C1'] = RowNum['C1'] + 1
+                        elif soc == 'AB':
+                            writeRow(AB, RowNum['AB'], vec)
+                            RowNum['AB'] = RowNum['AB'] + 1
+                        elif soc == 'C2':
+                            writeRow(C2, RowNum['C2'], vec)
+                            RowNum['C2'] = RowNum['C2'] + 1
+                        else:
+                            writeRow(ND, RowNum['ND'], vec)
+                            RowNum['ND'] = RowNum['ND'] + 1
+                      
+                        
+                       # ('UU','DE','C1','AB','C2')
 
                    #     ws.write(num, 0, leftContext[k])
                    #     ws.write(num, 1, AN[k])
@@ -163,5 +233,5 @@ for f in index:
                         #        f
                        # output.write(a.encode('utf-8'))
 #output.close()
-wb.save('example.xls')
+wb.save(paths.BNCpath + 'base.xls')
 print(num)
