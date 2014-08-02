@@ -46,7 +46,7 @@ meta = wb.add_sheet('meta')
     
 # функция возвращающая значение по паре в нотации самого Excel (заодно сразу перевожу в str)
 def GetItem(stri,intg):
-    return sheet.cell(intg-1,colindex(stri)).value.encode('ascii','ignore')
+    return sheet.cell(intg-1,colindex(stri)).value#.encode('ascii','ignore')
 
 #инкапсуляция проверки получения ноды
 def GetTextFind(host_el, key, akey):
@@ -66,7 +66,17 @@ def GetAttr(host_el, key, akey):
 def writeRow(sheet, row, vec):
     for i in range(len(vec)):
         sheet.write(row, i, vec[i])
-        
+
+def integerate(s):
+    try:
+        return int(s)
+    except ValueError:
+        return s
+#        try:
+#           return float(s)
+#        except ValueError:
+#            return s
+
 #открываем файл аутпута
 #output = open(paths.BNCpath + 'output.csv', 'w')
 #пишем в него хедеры столбцов
@@ -93,8 +103,14 @@ vec = ['left Context',\
         'name',\
         'dialect (code)',\
         'file name',\
+        'GENRE',\
+        'Notes & Alternative Genres',\
+        'Interaction Type',\
+        'Time Period (Alltim)',\
         'sentence num',\
-        'cource title'\
+        'Domain',\
+        'Word Total (in source)',\
+        'source title'\
         ]
 #vec = ['left Context',\#vec = [leftContext[k],\
 #        'Abstr Noun',\# AN[k],\
@@ -189,11 +205,17 @@ for f in index:
                             GetAttr(PersonDict,who,'soc'), \
                             GetTextFind(PersonDict,who,'dialect'), \
                             GetTextFind(PersonDict,who,'occupation'), \
-тут                            GetTextFind(PersonDict,who,'age'), \ 
+                            integerate(GetTextFind(PersonDict,who,'age')), \
                             GetTextFind(PersonDict,who,'persName'),\
                             GetAttr(PersonDict,who,'dialect'), \
                             f, \
-тут                            n, \
+                            GetItem('D',RowNum),\
+                            GetItem('E',RowNum),\
+                            GetItem('O',RowNum),\
+                            GetItem('P',RowNum),\
+                            integerate(n), \
+                            GetItem('C',RowNum),\
+                            integerate(GetItem('K',RowNum)),\
                             title ]
                             
                         #('UU','DE','C1','AB','C2')
@@ -262,7 +284,7 @@ i = 1
 for key in RowNumIndex:
     meta.write(i, 0, key)
     #print (str(i)+','+key)
-    meta.write(i, 1, RowNumIndex[key])    
+    meta.write(i, 1, RowNumIndex[key]-1)    
     #print (str(i)+','+str(RowNumIndex[key]))
     i = i+1
 
