@@ -9,7 +9,40 @@ import xml.etree.ElementTree as ET # читаем XML
 import xlrd # чтение файлов Excel
 import xlwt # пишем в Excel
 # файл с настройками
-import paths 
+# from . import paths 
+########################################
+#Думаю, что схема будет следующая:
+#    просматриваем файлы на предмет 
+
+
+############# настройки ################
+BNCpath = 'D:/BNCcorp/'
+output_file_name = 'test'
+dialect_selector = ('XNC','XNO','XSL','XLO','XMW','XME','XMC','XNE','XLC','XSS')
+word_type_selector = ('NN0', 'NN1', 'NN1-AJ0', 'NN1-NP0', 'NN1-WB', 'NN1-WG', 'NN2', 'NN2-WZ', 'NP0-NN1', 'UNC', 'WB-NN1', 'WG-NN1', 'WZ-NN2')
+file_id = ('J1A', 'JN7', 'JN6') #'all'
+
+# критерии источника:
+Medium = ('all')	
+Domain = ("S_Demog_AB", "S_Demog_C1", "S_Demog_C2", "S_Demog_DE", "S_Demog_Unclassified")
+GENRE	= ('all')
+Aud_Age = ('all')
+Aud_Sex = ('all')
+Aud_Level  = ('all')
+Sampling  = ('all')
+Circulation_Status  = ('all')	
+Interaction_Type = ('all')
+Time_Period = ('all')	
+Mode  = ('S')#'W'
+Author_Age = ('all')
+Author_Sex = ('all')
+Author_Type = ('all')
+
+########################################
+########################################
+
+field_names = {'Medium':'B', 'Domain':'C', 'GENRE':'D', 'Aud_Age':'H', 'Aud_Sex':'I', 'Aud_Level':'J', 'Sampling':'L', 'Circulation_Status':'N', 'Interaction_Type':'O', 'Time_Period':'P', 'Mode':'Q', 'Author_Age':'R', 'Author_Sex':'S', 'Author_Type':'T'}
+
 
 # функция обратная к colname
 def colindex(colname):
@@ -20,14 +53,192 @@ def colindex(colname):
     return k
 
 #получаем индекс файлов
-indexXML = ET.parse(paths.BNCpath + 'Etc/file_index.xml') #(file_in)
+indexXML = ET.parse(BNCpath + 'Etc/file_index.xml') #(file_in)
 index_root = indexXML.getroot()
-index = {ir.text[5:8]:ir.text  for ir in index_root.iter('file')}
+tmp_index = {ir.text[5:8]:ir.text  for ir in index_root.iter('file')}
+index = {}
+
+if file_id != ('all'):
+    for i in tmp_index:
+        if i in file_id:
+            index[i] = tmp_index[i]
+else: index = tmp_index
 
 #читаем базу источников
 rb = xlrd.open_workbook(paths.BNCpath + 'BNC_WORLD_INDEX.XLS',formatting_info=True)
 sheet = rb.sheet_by_index(0) 
 
+# Подмена метазаполнения на возможные значения
+if Medium == ('all'):
+    Medium = ('m_pub',\
+    'periodical',\
+    'book',\
+    'm_unpub',\
+    '---',\
+    'to_be_spoken')
+if Domain == ('all'):
+   Domain = ('W_soc_science',\
+    'W_world_affairs',\
+    'W_arts',\
+    'W_belief_thought',\
+    'W_imaginative',\
+    'W_leisure',\
+    'W_nat_science',\
+    'W_commerce',\
+    'W_app_science' ,\
+    'S_cg_public_instit',\
+    'S_cg_business',\
+    'S_cg_education', 
+    'S_cg_leisure', \
+    '---', \
+    'S_Demog_AB', \
+    'S_Demog_DE', \
+    'S_Demog_C2', \
+    'S_Demog_C1', \
+    'S_Demog_Unclassified')
+
+if GENRE == ('all'):
+    GENRE = ('W_non_ac_medicine',\
+    'W_institut_doc',\
+    'W_pop_lore',\
+    'W_ac_humanities_arts',\
+    'W_non_ac_humanities_arts',\
+    'W_fict_prose',\
+    'W_misc',\
+    'W_ac_soc_science',\
+    'W_biography',\
+    'W_non_ac_soc_science',\
+    'W_instructional',\
+    'W_non_ac_tech_engin',\
+    'W_newsp_brdsht_nat_arts',\
+    'W_newsp_brdsht_nat_commerce',\
+    'W_newsp_brdsht_nat_editorial',\
+    'W_newsp_brdsht_nat_report',\
+    'W_newsp_brdsht_nat_misc',\
+    'W_newsp_brdsht_nat_social',\
+    'W_newsp_brdsht_nat_science',\
+    'W_newsp_brdsht_nat_sports',\
+    'W_ac_polit_law_edu',\
+    'W_commerce',\
+    'W_non_ac_polit_law_edu',\
+    'W_non_ac_nat_science',\
+    'W_religion',\
+    'W_advert',\
+    'W_ac_nat_science',\
+    'W_letters_prof',\
+    'W_newsp_other_report',\
+    'W_ac_medicine',\
+    'W_fict_poetry',\
+    'W_ac_tech_engin',\
+    'W_newsp_other_social',\
+    'W_newsp_other_commerce',\
+    'W_newsp_other_sports',\
+    'W_newsp_tabloid',\
+    'S_speech_scripted',\
+    'S_pub_debate',\
+    'S_meeting',\
+    'S_speech_unscripted',\
+    'W_admin',\
+    'S_classroom',\
+    'S_unclassified',\
+    'S_demonstratn',\
+    'S_courtroom',\
+    'S_interview_oral_history',\
+    'S_lect_soc_science',\
+    'S_lect_nat_science',\
+    'S_tutorial',\
+    'S_lect_humanities_arts',\
+    'S_brdcast_discussn',\
+    'S_sermon',\
+    'S_consult',\
+    'W_fict_drama',\
+    'W_hansard',\
+    'S_interview',\
+    'W_letters_personal',\
+    'W_essay_univ',\
+    'W_essay_school',\
+    '---',\
+    'S_brdcast_documentary',\
+    'S_sportslive',\
+    'S_brdcast_news',\
+    'S_lect_polit_law_edu',\
+    'S_lect_commerce',\
+    'W_email',\
+    'W_news_script',\
+    'S_parliament',\
+    'W_newsp_other_science',\
+    'W_newsp_other_arts',\
+    'S_conv')
+
+if Aud_Age == ('all'):
+    Aud_Age =('adult',\
+    'teen',\
+    'child',\
+    '---')
+
+if Aud_Sex == ('all'):
+    Aud_Sex =('mixed',\
+    'male',\
+    'female',\
+    '---')
+    
+if Aud_Level == ('all'):
+    Aud_Level = ('med',\
+    'low',\
+    'high',\
+    '---')
+
+if Sampling == ('all'):
+    Sampling = ('cmp',\
+    'whl',\
+    'beg',\
+    'mid',\
+    '--',\
+    'end')
+
+if Circulation_Status == ('all'):
+    Circulation_Status = ('M',\
+    'L',\
+    'H',\
+    '-')
+    
+if Interaction_Type == ('all'):
+   Interaction_Type = ('---',\
+    'Dialogue',\
+    'Monologue')
+    
+if Time_Period == ('all'):
+    Time_Period = ('1985-1994',\
+    '---',\
+    '1975-1984',\
+    '1960-1974')
+    
+if Mode == ('all'):
+    Mode = ('W','S')
+    
+if Author_Age == ('all'):
+    Author_Age = ('---',\
+    '45-59',\
+    '15-24',\
+    '25-34',\
+    '35-44',\
+    '60+ yrs',\
+    '0-14')
+    
+if Author_Sex == ('all'):
+    Author_Sex = ('---',\
+    'Mixed',\
+    'Male',\
+    'Female',\
+    'Unknown')
+    
+if Author_Type == ('all'):
+    Author_Type = ('Multiple',\
+    'Corporate',\
+    'Sole',\
+    'Unknown',\
+    '---')
+ 
 #формируем индекс описания источников
 SourceRowIndex = {}
 for rownum in range(sheet.nrows):
@@ -142,8 +353,22 @@ for f in index:
     progress = progress + 1
     RowNum = SourceRowIndex[f]
     print (str ((len(index) - progress))+'-->'+str(RowNum)+' |=| '+str(f) + ' ЗАПИСЕЙ: '+ str(num))
-    # Условия отбора
-    if (GetItem('Q',RowNum) == "S") and GetItem('C',RowNum) in ("S_Demog_AB", "S_Demog_C1", "S_Demog_C2", "S_Demog_DE", "S_Demog_Unclassified"):
+    # Условия отбора field_names['Mode']
+    if \Medium and\
+        GetItem(field_names['Domain'],RowNum) in Domain and\
+        GetItem(field_names['GENRE'],RowNum) in GENRE and\
+        GetItem(field_names['Aud_Age'],RowNum) in Aud_Age  and\
+        GetItem(field_names['Aud_Sex'],RowNum) in Aud_Sex  and\
+        GetItem(field_names['Aud_Level'],RowNum) in Aud_Level and\
+        GetItem(field_names['Sampling'],RowNum) in Sampling and\
+        GetItem(field_names['Bibliographical_Details'],RowNum) in Bibliographical_Details and\
+        GetItem(field_names['Circulation_Status'],RowNum) in Circulation_Status and\
+        GetItem(field_names['Interaction_Type'],RowNum) in Interaction_Type and\
+        GetItem(field_names['Time_Period'],RowNum) in Time_Period and\
+        GetItem(field_names['Mode'],RowNum) in Mode and\
+        GetItem(field_names['Author_Age'],RowNum) in Author_Age and\
+        GetItem(field_names['Author_Sex'],RowNum) in Author_Sex and\
+        GetItem(field_names['Author_Type'],RowNum) in Author_Type:
         tree = ET.parse(paths.BNCpath + 'Texts/' + index[f]) # нужный файл найден, начинаем его анализировать, и расчленять
         root = tree.getroot()       
         #вычленяем хедер и данные из него
@@ -152,10 +377,10 @@ for f in index:
         PersonDict = {}
         for pers in tree.findall('.//person'):
             PersonDict[pers.attrib['{http://www.w3.org/XML/1998/namespace}id']] = pers 
-        # основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книгиб
+        # основное, говорящий атрибуты, говорящий ноды, имя источника, заголовок книги
         for u in root.findall('.//u'):
             who = u.attrib['who']    
-            if GetAttr(PersonDict,who,'dialect') in ('XNC','XNO','XSL','XLO','XMW','XME','XMC','XNE','XLC','XSS'):
+            if GetAttr(PersonDict,who,'dialect') in dialect_selector:
                 for s in u.findall('s'): #s = root.find('.//s')
                     n = s.attrib['n']
                     leftContext = ['']
@@ -174,7 +399,7 @@ for f in index:
                             word = w.text               
                         if w.tag == 'w':
                             word = w.text                         
-                            if w.attrib['c5'] in ('NN0', 'NN1', 'NN1-AJ0', 'NN1-NP0', 'NN1-WB', 'NN1-WG', 'NN2', 'NN2-WZ', 'NP0-NN1', 'UNC', 'WB-NN1', 'WG-NN1', 'WZ-NN2'): 
+                            if w.attrib['c5'] in word_type_selector: 
                                 AN.append(w.text)
                                 c5.append(w.attrib['c5'])
                                 hw.append(w.attrib['hw'])
@@ -288,5 +513,5 @@ for key in RowNumIndex:
     #print (str(i)+','+str(RowNumIndex[key]))
     i = i+1
 
-wb.save(paths.BNCpath + 'base.xls')
+wb.save(paths.BNCpath + Output_file_name +'.xls')
 print(num)
